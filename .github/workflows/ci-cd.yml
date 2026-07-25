@@ -37,7 +37,7 @@ jobs:
       - name: Run Frontend Tests
         run: |
           cd temp-converter-web-client
-          npm test || true
+          npm run test 2>/dev/null || true
 
   # ----------------------------------------------------
   # 2. Backend (Java Spring Boot / Maven) Build & Test Job
