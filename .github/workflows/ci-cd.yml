@@ -1,0 +1,42 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main", "feature/backend", "feature/frontend" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. GitHub Repository එක Checkout කරගැනීම
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # 2. Node.js Environment එක Setup කිරීම
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: './temp-converter-web-client/package-lock.json' # Frontend package-lock එකක් තියෙනවා නම්
+
+      # 3. Frontend Dependencies Install කිරීම
+      - name: Install Frontend Dependencies
+        run: |
+          cd temp-converter-web-client
+          npm install
+
+      # 4. Frontend Build කිරීම (Build Script එකක් තියෙනවා නම්)
+      - name: Build Frontend
+        run: |
+          cd temp-converter-web-client
+          npm run build --if-present
+
+      # 5. Tests Run කිරීම
+      - name: Run Tests
+        run: |
+          cd temp-converter-web-client
+          npm test --if-present
