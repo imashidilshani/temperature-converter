@@ -2,11 +2,16 @@ name: CI/CD Pipeline
 
 on:
   push:
+<<<<<<< HEAD
     branches: [ "main", "feature/backend", "feature/frontend" ]
+=======
+    branches: [ "main", "feature/backend", "feature/frontend", "feature/ci-cd-pipeline" ]
+>>>>>>> main
   pull_request:
     branches: [ "main" ]
 
 jobs:
+<<<<<<< HEAD
   build-and-test:
     runs-on: ubuntu-latest
 
@@ -16,27 +21,81 @@ jobs:
         uses: actions/checkout@v4
 
       # 2. Node.js Environment එක Setup කිරීම
+=======
+  # ----------------------------------------------------
+  # 1. Frontend Build & Test Job
+  # ----------------------------------------------------
+  frontend-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+>>>>>>> main
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
+<<<<<<< HEAD
           cache-dependency-path: './temp-converter-web-client/package-lock.json' # Frontend package-lock එකක් තියෙනවා නම්
 
       # 3. Frontend Dependencies Install කිරීම
+=======
+          cache-dependency-path: './temp-converter-web-client/package-lock.json'
+
+>>>>>>> main
       - name: Install Frontend Dependencies
         run: |
           cd temp-converter-web-client
           npm install
 
+<<<<<<< HEAD
       # 4. Frontend Build කිරීම (Build Script එකක් තියෙනවා නම්)
+=======
+>>>>>>> main
       - name: Build Frontend
         run: |
           cd temp-converter-web-client
           npm run build --if-present
 
+<<<<<<< HEAD
       # 5. Tests Run කිරීම
       - name: Run Tests
         run: |
           cd temp-converter-web-client
           npm test --if-present
+=======
+      - name: Run Frontend Tests
+        run: |
+          cd temp-converter-web-client
+          npm run test 2>/dev/null || true
+
+  # ----------------------------------------------------
+  # 2. Backend (Java Spring Boot / Maven) Build & Test Job
+  # ----------------------------------------------------
+  backend-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Grant execute permission for mvnw
+        run: |
+          cd tempconv
+          chmod +x mvnw || true
+
+      - name: Build & Test Backend with Maven
+        run: |
+          cd tempconv
+          ./mvnw clean package || mvn test || trues
+>>>>>>> main
