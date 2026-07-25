@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temperature Converter Client</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 30px;
+        }
+
+        h2, h3 {
+            text-align: center;
+            color: #333;
+            margin-top: 0;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 5px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .output-box {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 6px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 14px;
+            min-height: 50px;
+            white-space: pre-wrap;
+            color: #333;
+            border-left: 5px solid #007bff;
+            transition: all 0.3s ease;
+        }
+
+        .output-box.warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border-left: 5px solid #ffc107;
+        }
+
+        .output-box.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-left: 5px solid #dc3545;
+        }
+
+        .output-box.success {
+            background-color: #d4edda;
+            color: #155724;
+            border-left: 5px solid #28a745;
+        }
+
+        .history-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 750px;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            gap: 15px;
+        }
+
+        .filter-group select {
+            width: auto;
+            min-width: 160px;
+            margin-top: 0;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 14px;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            color: #555;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background-color: #f1f3f5;
+        }
+
+        .badge-celsius {
+            background-color: #e3f2fd;
+            color: #0d47a1;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .badge-fahrenheit {
+            background-color: #fff3e0;
+            color: #e65100;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Temperature Converter</h2>
+
+        <div class="form-group">
+            <label for="tempValue">Temperature Value:</label>
+            <input type="number" id="tempValue" placeholder="e.g., 100" required>
+        </div>
+
+        <div class="form-group">
+            <label for="tempUnit">Select Unit:</label>
+            <select id="tempUnit">
+                <option value="Celsius">Celsius (°C)</option>
+                <option value="Fahrenheit">Fahrenheit (°F)</option>
+            </select>
+        </div>
+
+        <button onclick="convertTemperature()">Convert</button>
+
+        <div class="output-box" id="outputArea">Result will appear here...</div>
+    </div>
+
+    <div class="history-container">
+        <h3>Conversion History Logs</h3>
+        
+        <div class="filter-group">
+            <label for="filterUnit" style="margin-bottom: 0;">Filter by Input Unit:</label>
+           
+            <select id="filterUnit" onchange="filterLogs(this.value)">
+                <option value="All">All Logs</option>
+                <option value="Celsius">Celsius (°C)</option>
+                <option value="Fahrenheit">Fahrenheit (°F)</option>
+            </select>
+        </div>
+
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Input Temp</th>
+                        <th>Input Unit</th>
+                        <th>Output Temp</th>
+                        <th>Output Unit</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody id="logsTableBody">
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #777;">No history logs available.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+<script>
+    const CONVERT_URL = '/api/convert';
+    const HISTORY_URL = '/api/history';
+    const FILTER_URL = '/api/filter';
+
+    window.onload = function() {
+        fetchHistory();
+    };
+
+    async function convertTemperature() {
+        const valueInput = document.getElementById('tempValue').value;
+        const unitInput = document.getElementById('tempUnit').value;
+        const outputArea = document.getElementById('outputArea');
+
+        outputArea.className = 'output-box';
+
+        if (!valueInput) {
+            outputArea.className = 'output-box warning';
+            outputArea.textContent = '⚠️ Warning: Please enter a numeric temperature value.';
+            return;
+        }
+
+        outputArea.textContent = 'Converting...';
+
+        try {
+            const response = await fetch(CONVERT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ value: valueInput, unit: unitInput })
+            });
+
+            const data = await response.json();
+
+            if (response.status === 401) {
+                outputArea.className = 'output-box warning';
+                outputArea.textContent = `⚠️ Security Warning: ${data.message || 'Unauthorized Access!'}`;
+                return;
+            }
+
+            if (!response.ok) {
+                outputArea.className = 'output-box error';
+                outputArea.textContent = `❌ Error: ${data.error || 'Server Error'}`;
+                return;
+            }
+
+            const unitCode = unitInput === 'Celsius' ? 'C' : 'F';
+            const safetyResponse = await fetch(`/api/safety-check?value=${valueInput}&unit=${unitCode}`);
+            const safetyText = await safetyResponse.text();
+
+            if (safetyText.includes('Warning:')) {
+                outputArea.className = 'output-box warning';
+            } else {
+                outputArea.className = 'output-box success';
+            }
+
+            outputArea.textContent =
+                `Conversion Successful:\n` +
+                `Input: ${data.inputTemperature} °${data.inputUnit === 'Celsius' ? 'C' : 'F'}\n` +
+                `Output: ${data.outputTemperature.toFixed(2)} °${data.outputUnit === 'Celsius' ? 'C' : 'F'}\n\n` +
+                `🛡️ Safety Status:\n${safetyText}`;
+
+            
+            document.getElementById('filterUnit').value = 'All';
+            fetchHistory();
+
+        } catch (error) {
+            outputArea.className = 'output-box error';
+            outputArea.textContent = `❌ Error: Unable to communicate with server. (${error.message})`;
+        }
+    }
+
+    async function fetchHistory() {
+        try {
+            const response = await fetch(HISTORY_URL);
+            if (!response.ok) throw new Error("Failed to fetch history.");
+            
+            const logs = await response.json();
+            displayLogs(logs);
+        } catch (error) {
+            console.error("History Load Error:", error);
+        }
+    }
+
+    async function filterLogs(selectedUnit) {
+        // "All" තෝරා ඇති විට හෝ value එක හිස් නම් සියලුම Logs පෙන්වන්න
+        if (selectedUnit === 'All' || !selectedUnit) {
+            fetchHistory();
+            return;
+        }
+
+        try {
+            const response = await fetch(`${FILTER_URL}?unit=${selectedUnit}`);
+            if (!response.ok) throw new Error("Failed to filter logs.");
+
+            const filteredLogs = await response.json();
+            displayLogs(filteredLogs);
+        } catch (error) {
+            console.error("Filtering Error:", error);
+        }
+    }
+
+    function displayLogs(logs) {
+        const tableBody = document.getElementById('logsTableBody');
+        tableBody.innerHTML = ''; 
+
+        if (!logs || !Array.isArray(logs) || logs.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #777;">No history logs available.</td></tr>`;
+            return;
+        }
+
+        logs.forEach(log => {
+            const inputUnitBadge = log.inputUnit === 'Celsius' ? 'badge-celsius' : 'badge-fahrenheit';
+            const outputUnitBadge = log.outputUnit === 'Celsius' ? 'badge-celsius' : 'badge-fahrenheit';
+
+            const row = `
+                <tr>
+                    <td><strong>${log.inputTemperature}</strong></td>
+                    <td><span class="${inputUnitBadge}">${log.inputUnit}</span></td>
+                    <td><strong>${log.outputTemperature ? log.outputTemperature.toFixed(2) : 0}</strong></td>
+                    <td><span class="${outputUnitBadge}">${log.outputUnit}</span></td>
+                    <td><small style="color: #666;">${log.timestamp}</small></td>
+                </tr>
+            `;
+            tableBody.innerHTML += row;
+        });
+    }
+</script>
+
+</body>
+</html>
