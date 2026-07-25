@@ -1,0 +1,32 @@
+services:
+  # 1. Temperature Converter Database Container
+  mongodb:
+    image: mongo:latest
+    container_name: temp_mongodb_container
+    ports:
+      - "27019:27017"  
+    volumes:
+      - temp_mongo_data:/data/db
+
+  # 2. Backend API Container
+  backend-api:
+    build: .
+    container_name: temp-api-container
+    ports:
+      - "9000:8080"
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/tempconverter
+    depends_on:
+      - mongodb
+
+  # 3. Frontend Client Container
+  frontend-client:
+    build: ../temp-converter-web-client
+    container_name: temp_client_container
+    ports:
+      - "3001:3000" 
+    depends_on:
+      - backend-api
+
+volumes:
+  temp_mongo_data:
