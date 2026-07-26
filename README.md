@@ -99,6 +99,58 @@ Docker Compose will build and start both the backend and frontend services.
 * **MongoDB Compass Connection:** Connect using `mongodb://localhost:27019` to view or manage stored conversion logs and API key records.
 ---
 
+## 🔌 API Endpoints Documentation
+
+Base URL: `http://localhost:9000/api/temperatures`
+
+### 1. Convert Temperature & Save to DB
+Converts temperature values and saves the log into MongoDB.
+* **Endpoint:** `/convert`
+* **Method:** `POST`
+* **Query Parameters:**
+  * `value` (double, required): Temperature value to convert.
+  * `unit` (String, required): Unit of temperature (e.g., `C` or `F`).
+* **Response:** Returns the saved `TemperatureLog` object.
+
+---
+
+### 2. Get All Logs
+Retrieves all temperature conversion logs stored in the database.
+* **Endpoint:** `/logs`
+* **Method:** `GET`
+* **Response:** List of all `TemperatureLog` objects.
+
+---
+
+### 3. Get History
+Retrieves full history of conversion logs.
+* **Endpoint:** `/history`
+* **Method:** `GET`
+* **Response:** List of historical `TemperatureLog` objects.
+
+---
+
+### 4. Filter Logs by Unit
+Filters temperature logs based on the specified unit.
+* **Endpoint:** `/filter`
+* **Method:** `GET`
+* **Query Parameters:**
+  * `unit` (String, required): Unit to filter logs by (e.g., `C` or `F`).
+* **Response:** List of filtered `TemperatureLog` objects matching the unit.
+
+---
+
+### 5. Safety Check
+Checks safety warnings/alerts based on temperature value and unit.
+* **Endpoint:** `/safety-check`
+* **Method:** `GET`
+* **Query Parameters:**
+  * `value` (double, required): Temperature value.
+  * `unit` (String, required): Unit of temperature.
+* **Response:** Plain text response message (e.g., `"High Temperature Warning!"`).
+
+---
+
 ## 🔄 CI/CD Pipeline
 
 The project includes an automated GitHub Actions workflow (`ci-cd.yml`) that runs whenever code is pushed to or a pull request is created for the **setup-cicd** branch.
